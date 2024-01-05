@@ -7,3 +7,5 @@
 # Ignore files with extension `.in` and `.out`
 *.in
 *.out
+# Ignore files with extension `.swp`
+*.swp
