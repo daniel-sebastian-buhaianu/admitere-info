@@ -1,30 +1,3 @@
-#include <fstream>
-using namespace std;
-int** cerintaC(int**a, int n, int m, int l, int c);
-int main()
-{
-  ifstream f("minesweeper.in");
-  int n, m;
-  f >> n >> m;
-  int** a = new int*[n];
-  for (int i = 0; i < n; i++)
-  {
-    a[i] = new int[m];
-    for (int j = 0; j < m; j++)
-      f >> a[i][j];
-  }
-  f.close();
-  int** b = cerintaC(a, n, m, 0, 2);
-  ofstream g("minesweeper.out");
-  for (int i = 0; i < n; i++)
-  {
-    for (int j = 0; j < m; j++)
-      g << b[i][j] << ' ';
-    g << '\n';
-  }
-  g.close();
-  return 0;
-}
 bool** cerintaB(int** a, int n, int m)
 {
   int** tmp = new int*[n+2];
@@ -65,85 +38,71 @@ int** cerintaC(int**a, int n, int m, int l, int c)
 {
   if (a[l][c] == -1)
     return a;
+  int** b = new int*[n];
+  for (int i = 0; i < n; i++)
+  {
+    b[i] = new int[m];
+    for (int j = 0; j < m; j++)
+      b[i][j] = -2;
+  }
   int dx[] = {-1,-1,-1,1,1,1,0,0};
   int dy[] = {-1,0,1,-1,0,1,-1,1};
-  int** b = new int*[n];
   bool** z = cerintaB(a, n, m);
   if (z[l][c] == 1)
   {
-    for (int i = 0; i < n; i++)
-    {
-      b[i] = new int[m];
-      for (int j = 0; j < m; j++)
-        b[i][j] = -2;
-    }
     int nr = 0;
     for (int d = 0; d < 8; d++)
     {
       int lin = dx[d] + l;
       int col = dy[d] + c;
-      if (lin >= 0 && lin < n
-          && col >= 0 && col < m
+      if (lin >= 0 && lin < n && col >= 0 && col < m
           && a[lin][col] == -1)
-            nr++;
+        nr++;
     }
     b[l][c] = nr;
     return b;
   }
-  else
+  struct Punct { int x, y; } C[n*m];
+  int inc = 0, sf = 0;
+  C[inc] = {l, c};
+  a[l][c] = 1;
+  b[l][c] = 0;
+  while (inc <= sf)
   {
-    struct Punct {
-      int x, y;
-    } C[n*m];
-    int inc = 0, sf = 0;
-    C[inc] = {l, c};
-    a[l][c] = 1;
-    for (int i = 0; i < n; i++)
+    Punct p = C[inc++];
+    for (int d = 0; d < 8; d++)
     {
-      b[i] = new int[m];
-      for (int j = 0; j < m; j++)
-        b[i][j] = -2;
-    }
-    b[l][c] = 0;
-    while (inc <= sf)
-    {
-      Punct p = C[inc++];
-      for (int d = 0; d < 8; d++)
+      int lin = p.x + dx[d];
+      int col = p.y + dy[d];
+      if (lin >= 0 && lin < n && col >= 0 && col < m
+          && z[lin][col] == 0 && a[lin][col] == 0)
       {
-        int lin = p.x + dx[d];
-        int col = p.y + dy[d];
-        if (lin >= 0 && lin < n && col >= 0 && col < m
-            && z[lin][col] == 0 && a[lin][col] == 0)
-        {
-          a[lin][col] = a[p.x][p.y] + 1;
-          b[lin][col] = 0;
-          C[++sf] = {lin, col};
-        }
+        a[lin][col] = a[p.x][p.y] + 1;
+        b[lin][col] = 0;
+        C[++sf] = {lin, col};
       }
     }
-    for (int i = 0; i < n; i++)
-      for (int j = 0; j < m; j++)
-        if (a[i][j] > 0)
-          for (int d = 0; d < 8; d++)
-          {
-            int lin = i + dx[d];
-            int col = j + dy[d];
-            if (lin >= 0 && lin < n && col >= 0 && col < m
-                && a[lin][col] == 0)
-            {
-              int nr = 0;
-              for (int k = 0; k < 8; k++)
-              {
-                int linn = lin + dx[k];
-                int coll = col + dy[k];
-                if (linn >= 0 && linn < n && coll >= 0 && coll < m
-                    && a[linn][coll] == -1)
-                  nr++;
-              }
-              b[lin][col] = nr;
-            }
-          }
-    return b;
   }
+  for (int i = 0; i <= sf; i++)
+    for (int d = 0; d < 8; d++)
+    {
+      int lin = C[i].x + dx[d];
+      int col = C[i].y + dy[d];
+      if (lin >= 0 && lin < n && col >= 0 && col < m
+          && a[lin][col] == 0)
+      {
+        int nr = 0;
+        for (int k = 0; k < 8; k++)
+        {
+          int ii = lin + dx[k];
+          int jj = col + dy[k];
+          if (ii >= 0 && ii < n && jj >= 0 && jj < m
+              && a[ii][jj] == -1)
+            nr++;
+        }
+        b[lin][col] = nr;
+      }
+    }
+  return b;
 }
 
